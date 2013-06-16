@@ -59,6 +59,8 @@ Key point here. If we are talking about data driven documents we need to know ho
 
 As stated, the data is organized on zoom levels by country, city and location. And for these we have 3 backbone model-collections with 3 separate requests. They all share a number of methods though (see `models/base.js.coffee`) and the most important of the is `parseDataForMap`. This method returns the data from the current collection ready to be fed into d3's `selection.data` method.
 
+TODO: add data structure snippet.
+
 
 ### The application in detail
 
