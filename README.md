@@ -1,8 +1,7 @@
-
 ## Title (TODO)
 
 
-I have recently been working at a [simple visualization](http://wcmc.io/map), where some circles, generated in d3 and representing ip addresses, are layered out on Google Maps. It turned out that using d3 made it surprisingly easy to handle the user-driven visualization changes. To some surprise because I have never considered myself a d3 expert and, as many others, I often struggled to understand and use it the right way.
+I have recently been working at a [simple visualization](http://wcmc.io/map), where some circles, generated in d3 and representing ip addresses, are layered out on Google Maps. It turned out that using d3 made it surprisingly easy to handle the user-driven visualization changes. I have never considered myself a d3 expert and, as many others, I often struggled to understand and use it the right way.
 
 To give an idea about how things can go bad, some time ago I found myself writing code like [this](https://github.com/deciob/data-story/blob/master/app/controllers/viz/bar_base.coffee):
 
