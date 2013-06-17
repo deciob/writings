@@ -159,7 +159,7 @@ And finally we get to analyze the `drawSvg` method, that hopefully will shed som
 
 ### Conclusion
 
-..... TODO ... 
+The pattern here is quite clear. The **SVG** circles are drawn. The user interacts with the map, zooming in and out and clicking on the **SVG** elements. These events will fire the appropriate application events and the `drawSvg` is repeatedly called with different, updated data. We are not interested on what kind of event originated the call and in what changes are happening to the data. We can always happily and blindly call `drawSvg` and the enter-update-exit points in the code will correctly handle all the rest for us. Amazing **Data-Driven Documents**.
 
 
 
