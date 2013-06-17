@@ -1,10 +1,6 @@
----
-layout: post
-title: "d3js and google maps"
-date: 2013-06-16 12:28
-comments: true
-categories: 
----
+
+## Title (TODO)
+
 
 I have recently been working at a [simple visualization](http://wcmc.io/map), where some circles, generated in d3 and representing ip addresses, are layered out on Google Maps. It turned out that using d3 made it surprisingly easy to handle the user-driven visualization changes. To some surprise because I have never considered myself a d3 expert and, as many others, I often struggled to understand and use it the right way.
 
