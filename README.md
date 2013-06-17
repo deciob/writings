@@ -6,9 +6,9 @@ comments: true
 categories: 
 ---
 
-I have recently been working at a [simple visualization](http://wcmc.io/map), where some circles, generated in d3 and representing ip addresses, are layered out on a Google Map. To some surprise it turned out that using d3 made it very easy to handle the user-driven visualization changes. To some surprise because I have never considered myself a d3 expert and as many others, I often struggled to understand it and use it the right way.
+I have recently been working at a [simple visualization](http://wcmc.io/map), where some circles, generated in d3 and representing ip addresses, are layered out on Google Maps. It turned out that using d3 made it surprisingly easy to handle the user-driven visualization changes. To some surprise because I have never considered myself a d3 expert and, as many others, I often struggled to understand and use it the right way.
 
-To give an idea about how bad I was, not long ago I was still writing code like [this](https://github.com/deciob/data-story/blob/master/app/controllers/viz/bar_base.coffee):
+To give an idea about how things can go bad, some time ago I found myself writing code like [this](https://github.com/deciob/data-story/blob/master/app/controllers/viz/bar_base.coffee):
 
 ```coffee
   # first check if there is no histogram around...
@@ -26,27 +26,29 @@ To give an idea about how bad I was, not long ago I was still writing code like 
       .transition()
 ```
 
-I know, inserting a `selectAll` into an if statement, to check if the selection is empty, is pretty nasty stuff. But thinking about `selectAll` as a placeholder for my data is something that took some time for me to feel comfortable with. My dominant thought was: why should I be selecting non existing stuff in the first place?
+Yes, inserting a `selectAll` into an if statement, to check if the selection is empty, is pretty nasty stuff. But thinking about `selectAll` as a placeholder for my data is something that took some time for me to feel comfortable with. I could not stop thinking about why I should be selecting non existing elements in the first place.
 
-These days, after some struggles and hard lessons, I think that writing simple data driven documents with d3 can become surprisingly easy, once one manages to grab a few fundamental concepts such as the enter-update-exit pattern. And hopefully this application is an excellent real world example for explaining this in a practical way.
+These days, after some struggles and with some experience gained, I think that writing simple data driven documents with d3, once one manages to grab a few fundamental concepts such as the enter-update-exit pattern,  can become surprisingly easy. And hopefully, the following walk-trough will help to explain why with a simple real-world example.
 
 
 ### The architecture basics.
 
-The page is backbone.js application that is part of a larger rails website, but it can easily be analyzed in isolation. 
+The [page](http://wcmc.io/map) in question is a backbone.js application that is part of a larger rails website, but can easily be analyzed in isolation. 
 
-It has 2 views, one for the map and one for listing the data related to ip locations (circle) on the map.
+It has two views, one for the map and one for listing the ip locations data details that relate to the circles on the map.
 
-The data that gets drawn on Google Map is clustered on 3 levels, depending on the zoom: country, city and individual location. The user can click on the circles (the data), the circle is re-drawn as active and a list of information about that data appears on the bottom view. The starting point for the code was the following [block](http://bl.ocks.org/mbostock/899711).
+The data rendered on Google Maps is clustered on 3 levels, depending on the zoom: country, city and individual locations. The user can click on the circles (the data) and these are re-drawn as active whilst a list of information appears on the bottom view. 
 
-A quite simple application, with not much interaction. Nevertheless, even the most innocent and naive JavaScript Web application can easily grow into an inextricable mess. Backbone helps, but the update-data-update-view pattern does not easily fit on a slippy Google Map. And it is here that enters d3 and its enter-update-exit pattern to keep things surprisingly simple.
+At this point I think it is correct to point out that the starting point for this code was the following [block](http://bl.ocks.org/mbostock/899711).
+
+So, a quite simple application, with not much interaction. Nevertheless, even the most innocent and naive JavaScript Web application, we all know, can easily grow into an inextricable mess. Backbone here helps, but the update-data-update-view pattern doesn't always fit well with a Google Maps representation. It is here that d3 enters the stage and helps, with its enter-update-exit pattern, to keep things surprisingly simple.
 
 
 ### How the data is structured and handled.
 
-For every cluster level we have a backbone model and collection, but all 3 share a number of methods (see: [base.js.coffee](https://github.com/unepwcmc/wukumurl/blob/master/app/assets/javascripts/map/models/base.js.coffee)). The most important of these methods is `parseDataForMap`. It returns the current collection data with the correct structure to be passed d3's `selection.data` method.
+For every cluster level we have a backbone model-collection and all three share a number of methods (see: [base.js.coffee](https://github.com/unepwcmc/wukumurl/blob/master/app/assets/javascripts/map/models/base.js.coffee)). The most important of these is `parseDataForMap`, that returns the current collection data in the form expected by d3's `selection.data` method in [map_view.js.coffee](https://github.com/unepwcmc/wukumurl/blob/master/app/assets/javascripts/map/views/map_view.js.coffee).
 
-This is an example of an object in the array returned from `parseDataForMap` on the countries collection:
+For clarity, this is an example of an object in the array returned from `parseDataForMap` on the countries collection:
 
 ```js
 [
@@ -63,13 +65,7 @@ This is an example of an object in the array returned from `parseDataForMap` on 
 
 ### The application flow.
 
-Practically all the code related to d3 and Google Maps lives in [map_view.js.coffee](https://github.com/unepwcmc/wukumurl/blob/master/app/assets/javascripts/map/views/map_view.js.coffee). Here, the 2 key functions to understand what is happening are `initOverlays` and `drawSvg`.
-
-`initOverlays` sets up the initial Google Maps configuration and its initial overlay (the svg circles related to the country clusters). The methods in here refer to the [Google Maps JavaScript API v3](https://developers.google.com/maps/documentation/javascript/) and two important things are happening:
-
-1. In `overlay.onAdd` we are creating a d3 selection within the map for our SVG elements and we are then partially applying (using a method from underscore.js) the first 2 arguments of the `drawSvg` method. This because these first 2 arguments will never change across the entire life of the application.
-2. Once the map is set (`overlay.setMap @map`) `overlay.draw` is called, consequently calling the partially applied `drawSvg` with the initial data. At this point the SVG circles representing the ip locations clustered on the country centroids will appear on the map.
-
+Almost all the code related to d3 and Google Maps lives in [map_view.js.coffee](https://github.com/unepwcmc/wukumurl/blob/master/app/assets/javascripts/map/views/map_view.js.coffee). Here, two key functions occupy the scene: `initOverlays` and `drawSvg`.
 
 ```coffee
   initOverlays: ->
@@ -94,16 +90,17 @@ Practically all the code related to d3 and Google Maps lives in [map_view.js.cof
     overlay.setMap @map
 ```
 
-In the `drawSvg` methods a lot is happening, so lets go through its main point and lets try to understand them in the context of the enter-update-exit pattern.
+`initOverlays` sets up the initial Google Maps configuration and initial overlay (the SVG circles related to the country clusters). The methods in here refer to the [Google Maps JavaScript API v3](https://developers.google.com/maps/documentation/javascript/). Two important things happen:
+
+1. In `overlay.onAdd` we are creating a d3 selection within the map, for our SVG elements, and we are then partially applying the `drawSvg` method with its first two arguments, because they never change across the entire life of the application.
+2. Once the map is set (after calling `overlay.setMap`), `overlay.draw` is called and consequently also `drawSvg`,  with the initial data. At this point the SVG circles, representing the ip locations clustered on the country centroids, will appear on the map.
+
+
 
 ```coffee
-  # The function is partially applied with `layer` and `self` arguments.
-  # `layer` is the div element that wraps all the svg elements that 
-  #  appear on the map.
-  # `self` is a reference to the instance (this) of WukumUrl.Map.Views.Map.
   drawSvg: (layer, self, data) ->
     #
-    # More code
+    # ... more code...
     #
     marker = layer.selectAll("svg")
       .data(data, (d) -> d.uique_id)
@@ -117,10 +114,7 @@ In the `drawSvg` methods a lot is happening, so lets go through its main point a
     # Lets position the text first (under the circle), so it does not interfere
     # with the click events. Only works because our circles are semi-transparent.
     txt = enter.append("svg:text")
-      .attr("x", (d) ->
-        cR(d.size * rFactor) - self.centreText(d.size))
-      .attr("y", (d) -> 
-        cR(d.size * rFactor) )
+      .each(transformTxt)
       .attr("dy", ".31em")
       .text((d) -> d.size)
       .style("font-size", (d) -> 
@@ -130,42 +124,45 @@ In the `drawSvg` methods a lot is happening, so lets go through its main point a
 
     circle = enter.append("svg:circle")
       .each(addEventListeners)
-      .attr("r", (d) -> cR(d.size * rFactor) )
-      .attr("cx", (d) -> cR(d.size * rFactor) )
-      .attr("cy", (d) -> cR(d.size * rFactor) )
+      .each(transformCircle)
 
     exit = marker.exit()
       #.each(removeEventListener) # TODO?
       .remove()
 ```
 
-* `marker = layer.selectAll("svg")`: I am selecting all the svg elements within our layer element (the div we have created earlier in the `initOverlays` method, remember?). The first time this is called the selection will be empty.
-* `.data(data, (d) -> d.uique_id)`: The data join point, notice here that I am passing in a key value as the second argument. This is necessary for the following reason. The data is an array of objects and these objects have different attributes, among witch lat and lng values. Now say that on my first level, the country one, i pass in an array of length 10 and later, on my city level, i pass in an array of length 15. Without passing the key function that uniquely identifies each object, changing levels would trigger a wrong update of the svg elements. The first 10 objects in the city data would be treated not as enter points, but as updates of the existing data. the last 5, would be correctly entered as new. The 10 country objects would not exit.
-* `.each(transform)`: This is used to correctly set the elements on to google maps. It is called before and after the `enter` because of how google maps works. On every zoom change Google maps will call `overlay.draw` again and everithing needs to be updated.
-* `enter = marker.enter().append("svg:svg")`: the entry point where our new svgs are appended to the DOM, depending not on the data array index but on the data uique_id attribute. On its first call all the data is new and entering. We then continue appending text (numbers indicating the size of the data) and circle elements to our svgs.
-* `exit = marker.exit().remove()`: Finally we are getting rid of the old data. On our first call no data is in exit.
-
-So what happens when we pass from zoom level 5 to 6 and our data is now clustered around cities and no longer around country centroids?
-
-* `marker = layer.selectAll("svg")`: This selection is now no longer empty.
-* `.data(data, (d) -> d.uique_id)`: New data is coming in, with new uique_ids, all different from the ids in the existing selection.
-* `enter = marker.enter().append("svg:svg")`: the data is all new, so we have an entry point for every object in the data array.
-* `exit = marker.exit().remove()`: All the data in the previous selection (the country centered data) is now all old, because entering uique_ids do not match the existing ones, so it is all removed. 
+And finally the `drawSvg` method, that hopefully will shed some light on how d3's enter-update-exit pattern works. Let's walk through it in three different states of our application.
 
 
-But what about the `update` portion of the pattern. Are we using it here, or is everything entering and exiting in block? Yes we are updating the data, when the user selects, with a click, an svg circle on the map. let see what happenes again in this case:
+#### We start from the initial data load.
 
-* `marker = layer.selectAll("svg")`: Again, this selection is not empty.
-* `.data(data, (d) -> d.uique_id)`: New data is coming in, but in this case none of the unique_ids in the data objects have changed! 
-* `enter = marker.enter().append("svg:svg")`: No new data is appended!
-* `exit = marker.exit().remove()`: No old data is removed!
+* `marker = layer.selectAll("svg")` selects all the SVG elements within our layer element (the div we have created earlier, in the `initOverlays` method, remember?). The first time this is called, the selection will be empty, just a placeholder for future elements.
+* `.data(data, (d) -> d.uique_id)` is the data join. Note how I am passing a key function as the second argument of the function. Not passing this key value, that uniquely identifies each object, would create a bug when changing levels, because the objects would be handled and compared by their index within the data array and objects from different zoom levels would no longer be distinguishable.
+* `.each(transform)` is used to correctly set the elements on Google Maps. It is called before and after the `enter` point because of how google maps works. On every zoom change Google Maps will call `overlay.draw` again and everything needs updating again.
+* `enter = marker.enter().append("svg:svg")` is the entry point where our new SVGs are appended to the DOM. On the first call all the data is new and entering. The function then continues appending text (numbers indicating the size of the data) and circle elements to our recently created SVG elements.
+* `exit = marker.exit().remove()` finally cleans up the old data. On the first though, all data is new and not in in exit.
+
+#### So what happens when we pass from zoom level 5 to 6 and our data is now clustered around cities and no longer around country centroids?
+
+* `marker = layer.selectAll("svg")` is now no longer empty.
+* `.data(data, (d) -> d.uique_id)` new data is coming in, with new unique_ids, all different from the ids stored in the existing selection.
+* `enter = marker.enter().append("svg:svg")`, the incoming data is all new, so we have an entry point for every object in the data array.
+* `exit = marker.exit().remove()` all the data in the previous selection (the country centered data) is now all old, because the entering object ids do not match the current ones, so they are all removed. 
+
+
+#### But what about the `update` portion of the pattern? Are we using it here at all, or is everything entering and exiting in block? Yes we are. The data gets updated when the user selects, with a click, an SVG circle on the map. 
+
+* `marker = layer.selectAll("svg")`, again, this selection is not empty.
+* `.data(data, (d) -> d.uique_id)`, new data is coming in, but in this case, none of the object ids have changed! 
+* `enter = marker.enter().append("svg:svg")`, no new data is appended!
+* `exit = marker.exit().remove()`: and no old data is removed!
 But
-* `.attr("class", (d) -> d.state)`: this will be updated for the svg element that has been selected, because this attribute, for that single element, changes.
+* `.attr("class", (d) -> d.state)` but the state attribute will be updated for the selected SVG.
 
 
 ### Conclusion
 
-The `drawSvg` method, we have seen, is called across the whole existence the application. No ifs, no elses. i am not interested in anything... everything is automatically updated!
+..... TODO
 
 
 
