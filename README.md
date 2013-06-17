@@ -1,4 +1,5 @@
-## Title (TODO)
+## D3 and Google Maps.
+### A simple walkthrough of the enter-update-exit data pattern.
 
 
 **Note**: the following article assumes the reader has at least some basic knowledge of **d3**. If one has never used **d3** before I would suggest reading the [introduction](http://d3js.org/) on the library homepage and [Thinking with Joins](http://bost.ocks.org/mike/join/) before continuing the read.
