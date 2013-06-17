@@ -6,74 +6,72 @@ comments: true
 categories: 
 ---
 
-I have recently been working on a simple data visualization, using Google Maps and d3.js. At the end my though was: d3 is so cool and it makes writing data visualizations so easy! Really? This wasn't always my idea.
+I have recently been working at a [simple visualization](http://wcmc.io/map), where some circles, generated in d3 and representing ip addresses, are layered out on a Google Map. To some surprise it turned out that using d3 made it very easy to handle the user-driven visualization changes. To some surprise because I have never considered myself a d3 expert and as many others, I often struggled to understand it and use it the right way.
 
-### Struggling with d3
-
-d3 needs no presentations. Anyone that has an interest in client-side JavaScript data visualizations must have played, or at least heard of it at one point. Along with its popularity though, an assumption that the library is difficult to understand and to use has also grown.  Nevertheless, recognizing that data visualizations and informatics is a vast, complex and mathematics dense field does not necessarily mean that all d3 visualizations must be hard and complex to achieve.
-
-I am no expert, but I do think that writing simple data driven documents with d3 can become surprisingly easy, once one manages to grab a few fundamental concepts such as the enter-update-exit pattern.
-
-Thinking about `selectAll` as a placeholder for my data is something it took me time for me to feel comfortable with. And rightly, why should I be selecting non existing stuff in the first place?
-
-At one point in time I was writing code like [this](https://github.com/deciob/data-story/blob/master/app/controllers/viz/bar_base.coffee):
+To give an idea about how bad I was, not long ago I was still writing code like [this](https://github.com/deciob/data-story/blob/master/app/controllers/viz/bar_base.coffee):
 
 ```coffee
-# first check if there is no histogram around...
-if @g.selectAll('path')[0].length == 0
-  @bar = @g.selectAll("g.bar")
-    .data(data)
-    .enter().append("g")
-  @bar.append("rect")
-#
-# ...more code...
-#
-else
-  @g.selectAll("rect")
-    .data(data)
-    .transition()
+  # first check if there is no histogram around...
+  if @g.selectAll('path')[0].length == 0
+    @bar = @g.selectAll("g.bar")
+      .data(data)
+      .enter().append("g")
+    @bar.append("rect")
+  #
+  # ...more code...
+  #
+  else
+    @g.selectAll("rect")
+      .data(data)
+      .transition()
 ```
 
-Pretty nasty stuff. If I had an empty selection, I appended stuff to the DOM, else I made some transitions on the existing elements. It did work, there is nothing here that harnesses the power and simplicity of the enter-update-exit pattern.
+I know, inserting a `selectAll` into an if statement, to check if the selection is empty, is pretty nasty stuff. But thinking about `selectAll` as a placeholder for my data is something that took some time for me to feel comfortable with. My dominant thought was: why should I be selecting non existing stuff in the first place?
 
-So yes, I did struggle to learn the basics and as I have said, I am no expert. Still, I must have learned something useful because today I feel this way of handling data and dom elements within d3 super natural and I think it greatly simplifies things. Let see why.
-
-
-### Basic architecture of the application
-
-The backbone.js page is part of a larger rails website, but it is self contained enough to be treated as a simple one page javaScript application. 
-
-It has 2 views, one for the map and one for a list of the data related to a single location (circle) on the map.
-
-We have some data (for the scope of this talk it is irrelevant what the data is about), that gets drawn with d3 on a Google Map, grouped on 3 levels, depending on the zoom level: country, city, location. The user can click on the circles (the data), the circle is re-drawn as active and a list of information about the data appears on the bottom view.
-
-Nothing more. A super simple app. As a starting point for it I copied code from [this block](http://bl.ocks.org/mbostock/899711).
-
-Nevertheless, even the most innocent and naive javaScript web application can go wrong very easily and turn into a inextricable mess. It just tend to happen, and it is not as easy as seems to avoid it, especially when one starts adding previously unforseen features.
-
-And it is within this scenario that I HAVE REALIZED THAT that using d3 and enter-update-exit pattern, helped me to keep things surprisingly simple. 
-
-### How the data is handled
-
-Key point here. If we are talking about data driven documents we need to know how the data is handled. 
-
-As stated, the data is organized on zoom levels by country, city and location. And for these we have 3 backbone model-collections with 3 separate requests. They all share a number of methods though (see `models/base.js.coffee`) and the most important of the is `parseDataForMap`. This method returns the data from the current collection ready to be fed into d3's `selection.data` method.
-
-TODO: add data structure snippet.
+These days, after some struggles and hard lessons, I think that writing simple data driven documents with d3 can become surprisingly easy, once one manages to grab a few fundamental concepts such as the enter-update-exit pattern. And hopefully this application is an excellent real world example for explaining this in a practical way.
 
 
-### The application in detail
+### The architecture basics.
 
-Practically all the code related to d3 and Google maps is located in the `views/map_view.js.coffee`. Here the 2 key methods are `initOverlays` and `drawSvg`.
+The page is backbone.js application that is part of a larger rails website, but it can easily be analyzed in isolation. 
 
-`initOverlays` sets up the initial Google map, with its initial overlay (country related). The methods in here refer to the Gmaps API. 2 important things are happening here:
+It has 2 views, one for the map and one for listing the data related to ip locations (circle) on the map.
 
-1. In `overlay.onAdd` we are creating a d3 selection within GMaps for our SVGs and we are then partially applying (using a method in underscore.js) the first 2 arguments of the `drawSvg` method. This because these first 2 arguments never change across the entire life of the application.
-2. Once the map is set (`overlay.setMap @map`) the `overlay.draw` is called, calling the partially applied `drawSvg` with the initial data. At this point svg circle will appear on the map.
+The data that gets drawn on Google Map is clustered on 3 levels, depending on the zoom: country, city and individual location. The user can click on the circles (the data), the circle is re-drawn as active and a list of information about that data appears on the bottom view. The starting point for the code was the following [block](http://bl.ocks.org/mbostock/899711).
+
+A quite simple application, with not much interaction. Nevertheless, even the most innocent and naive JavaScript Web application can easily grow into an inextricable mess. Backbone helps, but the update-data-update-view pattern does not easily fit on a slippy Google Map. And it is here that enters d3 and its enter-update-exit pattern to keep things surprisingly simple.
+
+
+### How the data is structured and handled.
+
+For every cluster level we have a backbone model and collection, but all 3 share a number of methods (see: [base.js.coffee](https://github.com/unepwcmc/wukumurl/blob/master/app/assets/javascripts/map/models/base.js.coffee)). The most important of these methods is `parseDataForMap`. It returns the current collection data with the correct structure to be passed d3's `selection.data` method.
+
+This is an example of an object in the array returned from `parseDataForMap` on the countries collection:
+
+```js
+[
+  {
+    "lat":35.8706911472,
+    "lng":104.1904317352,
+    "state":"inactive",
+    "size":2,
+    "id":122,
+    "uique_id":262.0611228824
+  },
+]
+```
+
+### The application flow.
+
+Practically all the code related to d3 and Google Maps lives in [map_view.js.coffee](https://github.com/unepwcmc/wukumurl/blob/master/app/assets/javascripts/map/views/map_view.js.coffee). Here, the 2 key functions to understand what is happening are `initOverlays` and `drawSvg`.
+
+`initOverlays` sets up the initial Google Maps configuration and its initial overlay (the svg circles related to the country clusters). The methods in here refer to the [Google Maps JavaScript API v3](https://developers.google.com/maps/documentation/javascript/) and two important things are happening:
+
+1. In `overlay.onAdd` we are creating a d3 selection within the map for our SVG elements and we are then partially applying (using a method from underscore.js) the first 2 arguments of the `drawSvg` method. This because these first 2 arguments will never change across the entire life of the application.
+2. Once the map is set (`overlay.setMap @map`) `overlay.draw` is called, consequently calling the partially applied `drawSvg` with the initial data. At this point the SVG circles representing the ip locations clustered on the country centroids will appear on the map.
 
 
 ```coffee
-  # Derived from: https://gist.github.com/mbostock/899711
   initOverlays: ->
     self = this
     # Remove loading gif
