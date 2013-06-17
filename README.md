@@ -1,10 +1,10 @@
 ## Title (TODO)
 
 
-**Note**: the following article assumes the reader has at least some basic knowledge of d3. If one has never used d3 before I would suggest reading the [introduction](http://d3js.org/) on the library homepage and [Thinking with Joins](http://bost.ocks.org/mike/join/) before continuing the read.
+**Note**: the following article assumes the reader has at least some basic knowledge of **d3**. If one has never used **d3** before I would suggest reading the [introduction](http://d3js.org/) on the library homepage and [Thinking with Joins](http://bost.ocks.org/mike/join/) before continuing the read.
 
 
-I have recently been working at a [simple visualization](http://wcmc.io/map), where some circles, generated in **d3** and representing ip addresses, are layered out on **Google Maps**. It turned out that using **d3** made it surprisingly clean and easy to handle the user-driven visualization changes. Surprisingly because, as many others, I somehow struggled to fully understand and correctly use **d3**.
+I have recently been working at a [simple visualization](http://wcmc.io/map), where some circles, generated in **d3** and representing ip addresses, are layered out on **Google Maps**. It turned out that using **d3** made it surprisingly clean and easy, to handle the user-driven visualization changes. Surprisingly because, as others, I somehow struggled to fully understand and correctly use **d3**.
 
 To give an idea about how **d3** can be misused, here is an excerpt from some [old code](https://github.com/deciob/data-story/blob/master/app/controllers/viz/bar_base.coffee) of mine:
 
@@ -37,7 +37,7 @@ It has two views, one for the map and one for listing the ip locations data deta
 
 The data rendered on **Google Maps** is clustered on 3 levels, depending on the zoom: country, city and individual locations. The user can click on the circles (the data) and these are re-drawn as active whilst a list of information appears on the bottom view. 
 
-Frankly, a quite simple application, with not much interaction. Nevertheless, even the most innocent and naive **JavaScript** Web application, we all know, can easily grow into an inextricable mess. **Backbone** here helps, but the **update-data-update-view** pattern doesn't always fit well with a **Google Maps** data representation. It is here that **d3** enters the stage and helps, with its **data enter-update-exit** pattern, to keep things surprisingly simple.
+Frankly, a quite simple application, with not much interaction. Nevertheless, even the most innocent and naive **JavaScript** Web application, we all know, can easily grow into an inextricable mess. **Backbone** here helps, but the **update-data-update-view** pattern doesn't always fit well with a **Google Maps** data representation. It is here that **d3** enters the stage and helps, with its **enter-update-exit data** pattern, to keep things surprisingly simple.
 
 
 ### How the data is structured and handled.
@@ -140,7 +140,7 @@ And finally we get to analyze the `drawSvg` method, that hopefully will shed som
 * `enter = marker.enter().append("svg:svg")` is the entry point where our new **SVG**s are appended to the DOM. On the first call all the data is new and entering. The function then continues appending text (numbers indicating the size of the data) and circle elements to our recently created **SVG** elements.
 * `exit = marker.exit().remove()` finally cleans up the old data. On the first load though, all data is new and nothing is in exit.
 
-#### So what happens when we pass from zoom level 5 to 6 and our data is now clustered around cities and no longer around country centroids?
+#### 2. So what happens when we pass from zoom level 5 to 6 and our data is now clustered around cities and no longer around country centroids?
 
 * `marker = layer.selectAll("svg")` is now no longer empty.
 * `.data(data, (d) -> d.uique_id)`, here new data is coming into the selection, with new unique_ids, all different from the existing ids (the country cluster objects).
@@ -148,14 +148,13 @@ And finally we get to analyze the `drawSvg` method, that hopefully will shed som
 * `exit = marker.exit().remove()`, the exit is full, all the old, existing data is now old, because the object ids no longer match, so they are all removed.
 
 
-#### But what about the `update` portion of the pattern? Are we using it here at all? Yes we are. The data gets updated when the user selects, with a click, an **SVG** circle on the map. 
+#### 3. But what about the `update` portion of the pattern? Are we using it here at all? Yes we are. The data gets updated when the user selects, with a click, an **SVG** circle on the map. 
 
 * `marker = layer.selectAll("svg")`, again, this selection is not empty.
 * `.data(data, (d) -> d.uique_id)`, new data is coming in, but in this case, none of the object ids have changed! 
 * `enter = marker.enter().append("svg:svg")`, so no new data is appended.
-* `exit = marker.exit().remove()`: and no old data is removed.
-But
-* `.attr("class", (d) -> d.state)`, but the state attribute will be updated, only for the the selected **SVG**.
+* `exit = marker.exit().remove()`: and no old data is removed. But...
+* `.attr("class", (d) -> d.state)`, the state attribute will be updated, only for the selected **SVG**.
 
 
 ### Conclusion
