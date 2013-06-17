@@ -33,11 +33,11 @@ These days, after some struggles and experiences, I think that writing simple **
 
 The [page](http://wcmc.io/map) in question is a **backbone.js** application that is part of a larger **rails** website, but can easily be analyzed in isolation. The starting point for this code was the following [block](http://bl.ocks.org/mbostock/899711).
 
-It has two views, one for the map and one for listing the ip locations data details that relate to the circles on the map.
+It has two views, one for the map and one for listing the ip location details that relate to the circles on the map.
 
-The data rendered on **Google Maps** is clustered on 3 levels, depending on the zoom: country, city and individual locations. The user can click on the circles (the data) and these are re-drawn as active whilst a list of information appears on the bottom view. 
+The data rendered on **Google Maps** is clustered on 3 levels, depending on the zoom: country, city and individual locations. The user can click on the circles (the data) and these are re-drawn as active, whilst a list of information appears on the bottom view. 
 
-Frankly, a quite simple application, with not much interaction. Nevertheless, even the most innocent and naive **JavaScript** Web application, we all know, can easily grow into an inextricable mess. **Backbone** here helps, but the **update-data-update-view** pattern doesn't always fit well with a **Google Maps** data representation. It is here that **d3** enters the stage and helps, with its **enter-update-exit data** pattern, to keep things surprisingly simple.
+Frankly, a quite simple application, with not much interaction. Nevertheless, even the most innocent and naive **JavaScript** Web application, we all know, can easily grow into an inextricable mess. **Backbone** here helps, but the **update-data--update-view** pattern doesn't always fit well with a **Google Maps** data representation. It is here that **d3** enters the stage and helps, with its **enter-update-exit data** pattern, to keep things surprisingly simple.
 
 
 ### How the data is structured and handled.
@@ -136,7 +136,7 @@ And finally we get to analyze the `drawSvg` method, that hopefully will shed som
 
 * `marker = layer.selectAll("svg")` selects all the **SVG** elements within our layer element (the div we have created earlier, in the `initOverlays` method, remember?). The first time this is called, the selection will be empty, just a placeholder for future elements.
 * `.data(data, (d) -> d.uique_id)` is the data join. Note how I am passing a key function as the second argument. Not passing this key value, that uniquely identifies each object, would insert a bug in the code when changing levels (country-city-locations). The data objects entering or exiting the selection would be compared by array index, rather than object id and would no longer be distinguishable.
-* `.each(transform)` is used to correctly set the elements on Google Maps. It is called before and after the `enter` point because of how Google Maps works: on every zoom change `overlay.draw` will be called and everything will need updating again.
+* `.each(transform)` is used to correctly set the elements on **Google Maps**. It is called before and after the `enter` point because of how **Google Maps** works: on every zoom change `overlay.draw` will be called and everything will need updating again.
 * `enter = marker.enter().append("svg:svg")` is the entry point where our new **SVG**s are appended to the DOM. On the first call all the data is new and entering. The function then continues appending text (numbers indicating the size of the data) and circle elements to our recently created **SVG** elements.
 * `exit = marker.exit().remove()` finally cleans up the old data. On the first load though, all data is new and nothing is in exit.
 
